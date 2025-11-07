@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const response = await fetch('/data');
+    const response = await fetch('static/songs_normalize.json');
     const data = await response.json();
     console.log("Data Loaded:", data);
 
@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let mainChart;
 
     function renderChart(metric, chartType) {
-        // Jika scatter plot, pakai 2 metrik berbeda (contoh: energy vs danceability)
         if (chartType === 'scatter') {
             if (mainChart) mainChart.destroy();
 
@@ -34,21 +33,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    devicePixelRatio: 2,
                     plugins: {
-                        title: {
-                            display: true,
-                            text: 'Energy vs Danceability (Scatter Plot)',
-                            color: '#1e293b',
-                            font: { size: 18, weight: '600' },
-                            padding: { bottom: 20 }
-                        },
-                        tooltip: {
+                        title: { display: true, text: 'Energy vs Danceability (Scatter Plot)', color: '#1e293b', font: { size: 18, weight: '600' } },
+                        tooltip: { 
                             callbacks: {
-                                label: function (context) {
-                                    const s = context.raw;
-                                    return `${s.title} — ${s.artist}`;
-                                }
+                                label: ctx => `${ctx.raw.title} — ${ctx.raw.artist}`
                             },
                             backgroundColor: '#1e293b',
                             titleColor: '#f8fafc',
@@ -57,41 +46,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                         legend: { display: false }
                     },
                     scales: {
-                        x: {
-                            title: { display: true, text: 'Energy', color: '#334155' },
-                            min: 0,
-                            max: 1,
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            ticks: { color: '#334155' }
-                        },
-                        y: {
-                            title: { display: true, text: 'Danceability', color: '#334155' },
-                            min: 0,
-                            max: 1,
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            ticks: { color: '#334155' }
-                        }
+                        x: { title: { display: true, text: 'Energy', color: '#334155' }, min: 0, max: 1 },
+                        y: { title: { display: true, text: 'Danceability', color: '#334155' }, min: 0, max: 1 }
                     }
                 }
             });
             return;
         }
 
-        // Jika bukan scatter → tetap pakai kode lama
+        // Untuk Bar / Line
         const sorted = [...data].sort((a, b) => b[metric] - a[metric]);
         const top = sorted.slice(0, 10);
 
-        const labels = top.map(d => {
-            const song = d.song && d.song.trim() !== "" ? d.song : "(No Title)";
-            const artist = d.artist && d.artist.trim() !== "" ? d.artist : "(Unknown Artist)";
-            return `${song} — ${artist}`;
-        });
-
+        const labels = top.map(d => `${d.song || "(No Title)"} — ${d.artist || "(Unknown Artist)"}`);
         const values = top.map(d => d[metric]);
 
         if (mainChart) mainChart.destroy();
 
-        // 🔧 Hitung skala agar lebih kontras
         const maxValue = Math.max(...values);
         const minValue = Math.min(...values);
         const range = maxValue - minValue;
@@ -106,8 +77,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     label: metric.toUpperCase(),
                     data: values,
                     backgroundColor: [
-                        '#3b82f6', '#8b5cf6', '#ef4444', '#22c55e', '#f59e0b',
-                        '#06b6d4', '#a855f7', '#ec4899', '#10b981', '#f97316'
+                        '#3b82f6','#8b5cf6','#ef4444','#22c55e','#f59e0b',
+                        '#06b6d4','#a855f7','#ec4899','#10b981','#f97316'
                     ],
                     borderColor: 'rgba(0,0,0,0.1)',
                     borderWidth: 1,
@@ -119,74 +90,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 indexAxis: chartType === 'bar' ? 'y' : 'x',
                 responsive: true,
                 maintainAspectRatio: false,
-                devicePixelRatio: 2,
                 scales: chartType === 'pie' ? {} : {
-                    x: chartType === 'bar' ? {
-                        beginAtZero: false,
-                        suggestedMin: suggestedMin,
-                        suggestedMax: suggestedMax,
-                        ticks: { color: '#334155' },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
-                    } : {
-                        ticks: {
-                            color: '#334155',
-                            autoSkip: false,
-                            maxRotation: 45,
-                            minRotation: 0
-                        },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
-                    },
-                    y: chartType === 'bar' ? {
-                        ticks: {
-                            color: '#334155',
-                            autoSkip: false
-                        },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
-                    } : {
-                        beginAtZero: false,
-                        suggestedMin: suggestedMin,
-                        suggestedMax: suggestedMax,
-                        ticks: { color: '#334155' },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
-                    }
+                    x: { beginAtZero: false, suggestedMin, suggestedMax, ticks: { color: '#334155' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { beginAtZero: false, suggestedMin, suggestedMax, ticks: { color: '#334155' }, grid: { color: 'rgba(0,0,0,0.05)' } }
                 },
                 plugins: {
-                    title: {
-                        display: true,
-                        text: `Top 10 Lagu berdasarkan ${metric}`,
-                        color: '#1e293b',
-                        font: { size: 18, weight: '600' },
-                        padding: { bottom: 20 }
-                    },
-                    legend: {
-                        display: chartType === 'pie',
-                        labels: {
-                            color: '#334155',
-                            font: { size: 13 }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#1e293b',
-                        titleColor: '#f8fafc',
-                        bodyColor: '#f8fafc'
-                    }
+                    title: { display:true, text:`Top 10 Lagu berdasarkan ${metric}`, color:'#1e293b', font:{ size:18, weight:'600' } },
+                    legend: { display: chartType === 'pie' },
+                    tooltip: { backgroundColor:'#1e293b', titleColor:'#f8fafc', bodyColor:'#f8fafc' }
                 },
-                animation: {
-                    duration: 900,
-                    easing: 'easeInOutQuart'
-                }
+                animation: { duration: 900, easing: 'easeInOutQuart' }
             }
         });
     }
 
-    // Default awal
+    // Default chart
     renderChart('popularity', 'bar');
 
-    metricSelect.addEventListener('change', () => {
-        renderChart(metricSelect.value, chartTypeSelect.value);
-    });
-
-    chartTypeSelect.addEventListener('change', () => {
-        renderChart(metricSelect.value, chartTypeSelect.value);
-    });
+    metricSelect.addEventListener('change', () => renderChart(metricSelect.value, chartTypeSelect.value));
+    chartTypeSelect.addEventListener('change', () => renderChart(metricSelect.value, chartTypeSelect.value));
 });
