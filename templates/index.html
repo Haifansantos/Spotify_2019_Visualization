@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spotify 2019 Data Visualization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🎧 Spotify 2019 Data Visualization</h1>
+        <p>Pilih metrik dan jenis chart untuk melihat data lagu.</p>
+
+        <div class="filter-section">
+            <label for="metricSelect">Metrik:</label>
+            <select id="metricSelect">
+                <option value="popularity">Popularity</option>
+                <option value="danceability">Danceability</option>
+                <option value="energy">Energy</option>
+                <option value="valence">Valence</option>
+            </select>
+
+            <label for="chartType">Tipe Chart:</label>
+            <select id="chartType">
+                <option value="bar">Bar Chart</option>
+                <option value="line">Line Chart</option>
+                <option value="scatter">Scatter</option>
+            </select>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
