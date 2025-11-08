@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const response = await fetch('./public/songs_normalize.json');
+    const response = await fetch('public/songs_normalize.json');
     const data = await response.json();
     console.log("Data Loaded:", data);
 
